@@ -1,0 +1,144 @@
+create database AcademiaDeProgramacion
+go
+use AcademiaDeProgramacion
+go
+create table Alumnos
+(
+  idAlumno int identity(1,1),
+  nombre varchar(60),
+  apellido varchar(60),
+  sexo varchar(20),
+  fechaNacimiento varchar(25),
+  tipoDocumento varchar(40),
+  documento varchar(10),
+  direccion varchar(100),
+  telefono varchar(10),
+  email varchar(100)
+  constraint pk_alumno primary key(idAlumno)
+)
+go
+
+
+create table Turnos
+(
+idTurno int identity(1,1),
+nombreTurno varchar(50),
+horario varchar(50)
+constraint pk_turno primary key (idTurno)
+)
+go
+drop table Docentes
+(
+idDocente int identity(1,1),
+nombre varchar(60),
+apellido varchar(60),
+legajo varchar(10),
+correoInstitucional varchar(100)
+constraint pk_docente primary key(idDocente)
+)
+go
+create table Cursos
+(
+idCurso int identity(1,1),
+nombreCurso varchar(60),
+idDocente int,
+duracion varchar(100),
+modalidad varchar(60),
+precio real
+constraint pk_curso primary key(idCurso),
+constraint fk_curso_docentes foreign key (idDocente) references Docentes (idDocente)
+)
+go
+create table Inscripcion 
+(
+idInscripcion int identity(1,1),
+idAlumno int,
+idCurso int,
+fechaInscripcion varchar(20),
+legajo varchar(10),
+idTurno int,
+idPromocion int,
+precioTotal real
+constraint pk_inscripcion primary key (idInscripcion),
+constraint fk_inscripcion_alumno foreign key (idAlumno) references Alumnos (idAlumno),
+constraint fk_inscripcion_curso foreign key (idCurso) references Cursos(idCurso),
+constraint fk_inscripcion_turno foreign key (idTurno) references Turnos(idTurno),
+constraint fk_inscripcion_promocion foreign key (idPromocion) references Promociones(idPromocion)
+)
+go
+create table Notas
+(
+idNota int identity(1,1),
+idInscripcion int,
+nombreNota varchar(25),
+nota int
+constraint pk_notas primary key(idNota),
+constraint fk_notas_inscripcion foreign key (idInscripcion) references Inscripcion (idInscripcion)
+)
+create table Programas
+(
+idPrograma int identity(1,1),
+idAlumno int,
+descripcion varchar(250),
+nombrePrograma varchar(150),
+estado int
+constraint pk_programa primary key (idPrograma),
+constraint fk_programa_inscripcion foreign key (idAlumno) references Alumnos (idAlumno)
+)
+create Promociones
+(
+idPromocion int identity(1,1),
+nombrePromocion varchar(150),
+descuento float
+constraint pk_promocion primary key(idPromocion)
+)
+create table Secretaria
+(
+  idSecretaria int identity(1,1),
+  nombre varchar(50),
+  apellido varchar(50),
+  correo varchar(100),
+  usuario varchar(50),
+  clave varchar(50)
+  constraint pk_Secretaria primary key(idSecretaria) 
+)
+
+
+insert into Secretaria (nombre,apellido,correo,usuario,clave) values ('Jose','Sfreddo','jsfreddo@frc.utn.edu.ar','josesfreddo','jose123')
+select * from Alumnos
+select * from Docentes
+select * from turnos
+select *from Cursos
+select * from Promociones
+select * from Inscripcion
+select * from Notas
+select * from Secretaria
+select * from Programas
+
+--Total facturado por cada curso.
+
+select c.nombreCurso AS Curso,sum(i.precioTotal) AS FacturacionTotal
+from inscripcion i join cursos c on i.idcurso = c.idcurso 
+group by c.nombreCurso
+
+--Sumatoria total de los descuentos realizados.
+
+select  sum(p.descuento) as DescuentoTotal
+from inscripcion i join promociones p on i.idPromocion = p.idPromocion
+
+--– Listado de todos los alumnos que accedieron a algún descuento. 
+--Si un alumno tiene descuentos en más de un curso, sólo debe aparecer una única vez en el listado.
+
+select a.nombre + ' , ' + a.apellido AS Alumno,sum(p.descuento) AS TotalDescuento
+from Inscripcion i join Alumnos a on i.idAlumno=a.idAlumno join
+Promociones p on i.idPromocion=p.idPromocion 
+join cursos c on i.idCurso =c.idCurso
+where p.nombrePromocion not like 'Ninguna'
+group by a.nombre + ' , ' + a.apellido
+
+--– Listado de alumnos de algún curso seleccionado.
+
+
+select * 
+from inscripcion i join cursos c on i.idCurso = c.idCurso
+where c.nombreCurso like '%Programacion Java%'or c.idCurso like '%2%'
